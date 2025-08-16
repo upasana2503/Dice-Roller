@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Roller</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 70%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.06) 0%, transparent 70%),
+                radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.05) 0%, transparent 65%),
+                radial-gradient(circle at 15% 70%, rgba(255, 255, 255, 0.04) 0%, transparent 65%),
+                radial-gradient(circle at 85% 35%, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
+            animation: backgroundPulse 10s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, transparent 15%, rgba(255, 255, 255, 0.06) 50%, transparent 85%),
+                linear-gradient(-45deg, transparent 15%, rgba(255, 255, 255, 0.05) 50%, transparent 85%),
+                linear-gradient(90deg, transparent 25%, rgba(255, 255, 255, 0.03) 50%, transparent 75%);
+            animation: backgroundLines 15s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            25% { 
+                transform: scale(1.2) rotate(2deg);
+                opacity: 1.2;
+            }
+            50% { 
+                transform: scale(0.8) rotate(-2deg);
+                opacity: 0.8;
+            }
+            75% { 
+                transform: scale(1.1) rotate(1deg);
+                opacity: 1.1;
+            }
+        }
+
+        @keyframes backgroundLines {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(0deg); }
+            50% { transform: translateX(0%) translateY(0%) rotate(180deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(360deg); }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.9),
+                0 0 50px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px);
+            margin-bottom: 40px;
+            animation: containerFadeIn 1s ease-out;
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, #fff, #000, #fff, #000, #fff);
+            border-radius: 25px;
+            z-index: -1;
+            animation: borderGlow 4s ease-in-out infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes containerFadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            animation: titleGlow 2s ease-in-out infinite alternate;
+            position: relative;
+        }
+
+        .title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: #fff;
+            animation: titleUnderline 2s ease-out 0.5s forwards;
+        }
+
+        @keyframes titleGlow {
+            from { text-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+        }
+
+        @keyframes titleUnderline {
+            to { width: 200px; }
+        }
+
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            animation: diceContainerFadeIn 1.5s ease-out;
+        }
+
+        @keyframes diceContainerFadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .die {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(145deg, #fff, #f0f0f0);
+            border: 3px solid #000;
+            border-radius: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            padding: 8px;
+            position: relative;
+            box-shadow: 
+                0 8px 20px rgba(255, 255, 255, 0.2),
+                0 0 15px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: dieFloat 3s ease-in-out infinite;
+        }
+
+        .die:nth-child(1) { animation-delay: 0s; }
+        .die:nth-child(2) { animation-delay: 0.2s; }
+        .die:nth-child(3) { animation-delay: 0.4s; }
+        .die:nth-child(4) { animation-delay: 0.6s; }
+        .die:nth-child(5) { animation-delay: 0.8s; }
+
+        .die:hover {
+            transform: scale(1.1) rotateY(10deg);
+            box-shadow: 0 15px 35px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes dieFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background: #000;
+            border-radius: 50%;
+            animation: dotPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Dot positioning */
+        .face-1 .dot {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .face-2 .dot:nth-child(1) {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .face-2 .dot:nth-child(2) {
+            grid-column: 3;
+            grid-row: 3;
+        }
+
+        .face-3 .dot:nth-child(1) {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .face-3 .dot:nth-child(2) {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .face-3 .dot:nth-child(3) {
+            grid-column: 3;
+            grid-row: 3;
+        }
+
+        .face-4 .dot:nth-child(1) {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .face-4 .dot:nth-child(2) {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        .face-4 .dot:nth-child(3) {
+            grid-column: 1;
+            grid-row: 3;
+        }
+
+        .face-4 .dot:nth-child(4) {
+            grid-column: 3;
+            grid-row: 3;
+        }
+
+        .face-5 .dot:nth-child(1) {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .face-5 .dot:nth-child(2) {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        .face-5 .dot:nth-child(3) {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .face-5 .dot:nth-child(4) {
+            grid-column: 1;
+            grid-row: 3;
+        }
+
+        .face-5 .dot:nth-child(5) {
+            grid-column: 3;
+            grid-row: 3;
+        }
+
+        .face-6 .dot:nth-child(1) {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .face-6 .dot:nth-child(2) {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        .face-6 .dot:nth-child(3) {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .face-6 .dot:nth-child(4) {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .face-6 .dot:nth-child(5) {
+            grid-column: 1;
+            grid-row: 3;
+        }
+
+        .face-6 .dot:nth-child(6) {
+            grid-column: 3;
+            grid-row: 3;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            animation: controlsSlideIn 1.2s ease-out 0.5s both;
+        }
+
+        @keyframes controlsSlideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dice-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .dice-select {
+            padding: 10px 15px;
+            font-size: 1.1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .dice-select option {
+            background: #333;
+            color: #fff;
+        }
+
+        .roll-button {
+            background: linear-gradient(145deg, #fff, #f0f0f0);
+            color: #000;
+            border: none;
+            padding: 18px 45px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                0 10px 25px rgba(255, 255, 255, 0.3),
+                0 0 20px rgba(255, 255, 255, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+            animation: buttonPulse 2s ease-in-out infinite;
+        }
+
+        .roll-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .roll-button:hover::before {
+            left: 100%;
+        }
+
+        .roll-button:hover {
+            background: #000;
+            color: #fff;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4); }
+            50% { box-shadow: 0 8px 25px rgba(255, 255, 255, 0.6); }
+        }
+
+        .roll-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .result-box {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px 25px;
+            text-align: center;
+            min-width: 150px;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            animation: resultBoxFadeIn 0.8s ease-out;
+        }
+
+        .result-box:nth-child(1) { animation-delay: 0.2s; }
+        .result-box:nth-child(2) { animation-delay: 0.4s; }
+
+        .result-box:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes resultBoxFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-label {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .history-section {
+            text-align: center;
+            animation: historySectionFadeIn 1.5s ease-out 0.8s both;
+        }
+
+        @keyframes historySectionFadeIn {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .history-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .history-box {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 100px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            animation: historyBoxSlide 1s ease-out;
+        }
+
+        .history-box:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes historyBoxSlide {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .history-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-result {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .history-time {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .no-history {
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .clear-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .clear-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.5s;
+        }
+
+        .clear-button:hover::before {
+            left: 100%;
+        }
+
+        .clear-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            transform: translateY(-3px) scale(1.05);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
+        }
+
+        .rolling {
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0) rotate(0deg);
+            }
+            25% {
+                transform: translateX(-5px) rotate(-3deg);
+            }
+            50% {
+                transform: translateX(0px) rotate(0deg);
+            }
+            75% {
+                transform: translateX(5px) rotate(3deg);
+            }
+        }
+
+        /* Footer section styles */
+        .footer-section {
+            text-align: center;
+            padding: 30px;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+            margin-top: 30px;
+            background: #fff;
+            border-radius: 15px;
+            animation: footerSlideUp 1.2s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+            animation: footerShine 3s ease-in-out infinite;
+        }
+
+        @keyframes footerSlideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes footerShine {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
+        }
+
+        .creator-info h4 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #000;
+            text-shadow: none;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 50px;
+            color: #000;
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: socialIconFloat 2s ease-in-out infinite;
+        }
+
+        .social-links a:nth-child(1) { animation-delay: 0s; }
+        .social-links a:nth-child(2) { animation-delay: 0.2s; }
+        .social-links a:nth-child(3) { animation-delay: 0.4s; }
+        .social-links a:nth-child(4) { animation-delay: 0.6s; }
+
+        .social-links a:hover {
+            background: rgba(0, 0, 0, 0.2);
+            border-color: rgba(0, 0, 0, 0.5);
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes socialIconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .footer-bottom p {
+            color: rgba(0, 0, 0, 0.7);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .title {
+                font-size: 2.5rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .results {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .die {
+                width: 60px;
+                height: 60px;
+            }
+
+            .dot {
+                width: 8px;
+                height: 8px;
+            }
+
+            .footer-section {
+                padding: 20px;
+                margin-top: 20px;
+            }
+
+            .social-links {
+                gap: 15px;
+            }
+
+            .social-links a {
+                width: 45px;
+                height: 45px;
+                line-height: 45px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="title">Dice Roller</h1>
+
+        <div class="dice-container" id="diceContainer">
+            <!-- Dice will be generated here -->
+        </div>
+
+        <div class="controls">
+            <label class="dice-label">NUMBER OF DICE:</label>
+            <select class="dice-select" id="diceCount">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <button class="roll-button" id="rollButton">ROLL DICE!</button>
+        </div>
+
+        <div class="results">
+            <div class="result-box">
+                <div class="result-label">RESULT:</div>
+                <div class="result-value" id="resultValue">-</div>
+            </div>
+            <div class="result-box">
+                <div class="result-label">TOTAL:</div>
+                <div class="result-value" id="totalValue">-</div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <h2 class="history-title">ROLL HISTORY</h2>
+            <div class="history-box" id="historyBox">
+                <div class="no-history">No rolls yet. Click "Roll Dice!" to start.</div>
+            </div>
+            <button class="clear-button" id="clearButton">CLEAR HISTORY</button>
+        </div>
+
+        <div class="footer-section">
+            <div class="creator-info">
+                <h4>Created by Upasana Kumari</h4>
+                <div class="social-links">
+                    <a href="mailto:upasanasingh2503@gmail.com" title="Email" target="_blank">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/in/upasana25/" title="LinkedIn" target="_blank">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="https://github.com/upasana2503" title="GitHub" target="_blank">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://www.instagram.com/upasana226/" title="Instagram" target="_blank">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Upasana Kumari. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class DiceRoller {
+            constructor() {
+                this.diceContainer = document.getElementById('diceContainer');
+                this.diceCountSelect = document.getElementById('diceCount');
+                this.rollButton = document.getElementById('rollButton');
+                this.clearButton = document.getElementById('clearButton');
+                this.resultValue = document.getElementById('resultValue');
+                this.totalValue = document.getElementById('totalValue');
+                this.historyBox = document.getElementById('historyBox');
+
+                this.currentDiceCount = 2;
+                this.diceElements = [];
+                this.rollHistory = [];
+
+                this.init();
+            }
+
+            init() {
+                this.rollButton.addEventListener('click', () => this.rollDice());
+                this.clearButton.addEventListener('click', () => this.clearHistory());
+                this.diceCountSelect.addEventListener('change', (e) => {
+                    this.updateDiceCount(parseInt(e.target.value));
+                });
+
+                this.loadHistory();
+                this.updateDiceCount(2);
+                this.updateHistoryDisplay();
+            }
+
+            createDie() {
+                const die = document.createElement('div');
+                die.className = 'die face-1';
+                die.innerHTML = '<div class="dot"></div>';
+                return die;
+            }
+
+            updateDiceCount(count) {
+                this.currentDiceCount = count;
+                this.diceContainer.innerHTML = '';
+                this.diceElements = [];
+
+                for (let i = 0; i < count; i++) {
+                    const die = this.createDie();
+                    this.diceElements.push(die);
+                    this.diceContainer.appendChild(die);
+                }
+            }
+
+            showDieFace(die, value) {
+                die.className = `die face-${value}`;
+                die.innerHTML = '';
+
+                for (let i = 0; i < value; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    die.appendChild(dot);
+                }
+            }
+
+            rollDice() {
+                this.rollButton.disabled = true;
+                this.rollButton.textContent = 'ROLLING...';
+
+                // Add rolling animation
+                this.diceElements.forEach(die => {
+                    die.classList.add('rolling');
+                });
+
+                // Generate results
+                const results = [];
+                for (let i = 0; i < this.currentDiceCount; i++) {
+                    results.push(Math.floor(Math.random() * 6) + 1);
+                }
+
+                // Show results after animation
+                setTimeout(() => {
+                    this.diceElements.forEach((die, index) => {
+                        die.classList.remove('rolling');
+                        this.showDieFace(die, results[index]);
+                    });
+
+                    const total = results.reduce((sum, result) => sum + result, 0);
+
+                    // Update display
+                    this.resultValue.textContent = results.join(', ');
+                    this.totalValue.textContent = total;
+
+                    // Add to history
+                    this.addToHistory(results, total);
+
+                    // Re-enable button
+                    this.rollButton.disabled = false;
+                    this.rollButton.textContent = 'ROLL DICE!';
+                }, 1000);
+            }
+
+            addToHistory(results, total) {
+                const timestamp = new Date().toLocaleTimeString();
+                const historyItem = {
+                    results: [...results],
+                    total: total,
+                    time: timestamp,
+                    id: Date.now()
+                };
+
+                this.rollHistory.unshift(historyItem);
+
+                // Keep only last 10 rolls
+                if (this.rollHistory.length > 10) {
+                    this.rollHistory = this.rollHistory.slice(0, 10);
+                }
+
+                this.saveHistory();
+                this.updateHistoryDisplay();
+            }
+
+            updateHistoryDisplay() {
+                if (this.rollHistory.length === 0) {
+                    this.historyBox.innerHTML = '<div class="no-history">No rolls yet. Click "Roll Dice!" to start.</div>';
+                    return;
+                }
+
+                const historyHTML = this.rollHistory.map(item => `
+                    <div class="history-item">
+                        <span class="history-result">${item.total} [${item.results.join(', ')}]</span>
+                        <span class="history-time">${item.time}</span>
+                    </div>
+                `).join('');
+
+                this.historyBox.innerHTML = historyHTML;
+            }
+
+            clearHistory() {
+                if (this.rollHistory.length === 0) {
+                    alert('No history to clear!');
+                    return;
+                }
+
+                if (confirm('Are you sure you want to clear the roll history?')) {
+                    this.rollHistory = [];
+                    this.resultValue.textContent = '-';
+                    this.totalValue.textContent = '-';
+                    this.saveHistory();
+                    this.updateHistoryDisplay();
+                }
+            }
+
+            saveHistory() {
+                try {
+                    localStorage.setItem('diceRollerHistory', JSON.stringify(this.rollHistory));
+                } catch (error) {
+                    console.warn('Could not save history:', error);
+                }
+            }
+
+            loadHistory() {
+                try {
+                    const saved = localStorage.getItem('diceRollerHistory');
+                    if (saved) {
+                        this.rollHistory = JSON.parse(saved);
+                    }
+                } catch (error) {
+                    console.warn('Could not load history:', error);
+                    this.rollHistory = [];
+                }
+            }
+        }
+
+        // Initialize the dice roller
+        document.addEventListener('DOMContentLoaded', () => {
+            new DiceRoller();
+        });
+    </script>
+</body>
+
+</html> 
